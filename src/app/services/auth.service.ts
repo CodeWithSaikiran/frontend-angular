@@ -1,23 +1,49 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { tap, map } from 'rxjs/operators';
-import { LoginRequest, SignupRequest, AuthResponse, User } from '../models/user.model';
-import { environment } from '../../environments/environment';
+import { tap } from 'rxjs/operators';
+
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface SignupRequest {
+  username: string;
+  email: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  username: string;
+  email: string;
+  message: string;
+}
+
+export interface User {
+  id?: number;
+  username: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  token?: string;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = environment.apiUrl;
+  private apiUrl = '/api/auth';  // Relative path - works with any IP
   private currentUserSubject: BehaviorSubject<User | null>;
-  public currentUser: Observable<User | null>;
 
   constructor(private http: HttpClient) {
+    const storedUser = localStorage.getItem('currentUser');
     this.currentUserSubject = new BehaviorSubject<User | null>(
-      this.getUserFromStorage()
+      storedUser ? JSON.parse(storedUser) : null
     );
-    this.currentUser = this.currentUserSubject.asObservable();
   }
 
   public get currentUserValue(): User | null {
@@ -25,7 +51,7 @@ export class AuthService {
   }
 
   login(loginRequest: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, loginRequest)
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, loginRequest)
       .pipe(
         tap(response => {
           if (response && response.token) {
@@ -34,7 +60,7 @@ export class AuthService {
               email: response.email,
               token: response.token
             };
-            localStorage.setItem(environment.tokenKey, JSON.stringify(user));
+            localStorage.setItem('currentUser', JSON.stringify(user));
             this.currentUserSubject.next(user);
           }
         })
@@ -42,11 +68,11 @@ export class AuthService {
   }
 
   signup(signupRequest: SignupRequest): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/signup`, signupRequest);
+    return this.http.post(`${this.apiUrl}/signup`, signupRequest);
   }
 
   logout(): void {
-    localStorage.removeItem(environment.tokenKey);
+    localStorage.removeItem('currentUser');
     this.currentUserSubject.next(null);
   }
 
@@ -56,18 +82,10 @@ export class AuthService {
       return new Observable(observer => observer.next(false));
     }
     
-    return this.http.get(`${this.apiUrl}/auth/validate`, {
+    return this.http.get(`${this.apiUrl}/validate`, {
       headers: { Authorization: `Bearer ${currentUser.token}` }
     }).pipe(
-      map((response: any) => response.valid)
+      tap((response: any) => response.valid)
     );
-  }
-
-  private getUserFromStorage(): User | null {
-    const userStr = localStorage.getItem(environment.tokenKey);
-    if (userStr) {
-      return JSON.parse(userStr);
-    }
-    return null;
   }
 }
