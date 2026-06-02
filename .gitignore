@@ -1,0 +1,11 @@
+# Node modules
+node_modules
+
+# Angular build output
+dist/
+
+# Angular build cache
+.angular/
+
+# npm auto-generated lockfile
+package-lock.json
