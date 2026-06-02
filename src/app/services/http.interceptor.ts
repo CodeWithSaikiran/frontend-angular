@@ -77,9 +77,9 @@ export class HttpConfigInterceptor implements HttpInterceptor {
             }
         } else {
             return this.refreshTokenSubject.pipe(
-                filter((token) => token != null),
+                filter((token): token is string => token != null),
                 take(1),
-                switchMap((token) => {
+                switchMap((token: string) => {
                     return next.handle(this.addToken(request, token));
                 })
             );
