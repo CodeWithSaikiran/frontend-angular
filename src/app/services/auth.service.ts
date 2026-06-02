@@ -36,7 +36,8 @@ export interface User {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = '/api/auth';  // Relative path - works with any IP
+  // Dynamic URL - works with any IP address
+  private apiUrl = '/api/auth';
   private currentUserSubject: BehaviorSubject<User | null>;
 
   constructor(private http: HttpClient) {
@@ -76,16 +77,7 @@ export class AuthService {
     this.currentUserSubject.next(null);
   }
 
-  validateToken(): Observable<boolean> {
-    const currentUser = this.currentUserValue;
-    if (!currentUser || !currentUser.token) {
-      return new Observable(observer => observer.next(false));
-    }
-    
-    return this.http.get(`${this.apiUrl}/validate`, {
-      headers: { Authorization: `Bearer ${currentUser.token}` }
-    }).pipe(
-      tap((response: any) => response.valid)
-    );
+  getToken(): string | null {
+    return this.currentUserValue?.token || null;
   }
 }
