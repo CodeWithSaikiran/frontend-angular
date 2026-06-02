@@ -8,12 +8,12 @@ import {
 } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, filter, take, switchMap } from 'rxjs/operators';
-import { AuthService } from './auth.service';
+import { AuthService, AuthResponse } from './auth.service';
 
 @Injectable()
 export class HttpConfigInterceptor implements HttpInterceptor {
     private isRefreshing = false;
-    private refreshTokenSubject: BehaviorSubject<any> = new BehaviorSubject<any>(
+    private refreshTokenSubject: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(
         null
     );
 
@@ -59,7 +59,7 @@ export class HttpConfigInterceptor implements HttpInterceptor {
 
             if (refreshToken) {
                 return this.authService.refreshToken(refreshToken).pipe(
-                    switchMap((response: any) => {
+                    switchMap((response: AuthResponse) => {
                         this.isRefreshing = false;
                         this.refreshTokenSubject.next(response.token);
                         return next.handle(this.addToken(request, response.token));

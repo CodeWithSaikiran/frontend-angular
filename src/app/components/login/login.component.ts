@@ -76,8 +76,8 @@ export class LoginComponent implements OnInit {
         this.error = 'Your account has been disabled. Please contact support.';
         break;
       case 'INVALID_CREDENTIALS':
-        this.remainingAttempts = errorResponse.attemptsRemaining;
-        if (this.remainingAttempts > 0) {
+        this.remainingAttempts = errorResponse.attemptsRemaining ?? null;
+        if (this.remainingAttempts !== null && this.remainingAttempts > 0) {
           this.error = `Invalid username or password. ${this.remainingAttempts} attempt(s) remaining.`;
         } else {
           this.error = 'Invalid credentials. Account has been locked.';

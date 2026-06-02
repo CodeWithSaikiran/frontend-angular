@@ -99,8 +99,8 @@ export class AuthService {
     return sessionStorage.getItem('refreshToken');
   }
 
-  refreshToken(refreshToken: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/refresh`, { refreshToken })
+  refreshToken(refreshToken: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/refresh`, { refreshToken })
       .pipe(
         tap(response => {
           if (response && response.token) {
