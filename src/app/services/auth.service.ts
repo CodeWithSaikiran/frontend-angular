@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable, BehaviorSubject, of } from 'rxjs';
+import { tap, map } from 'rxjs/operators';
 
 export interface LoginRequest {
   username: string;
@@ -36,7 +36,6 @@ export interface User {
   providedIn: 'root'
 })
 export class AuthService {
-  // Dynamic URL - works with any IP address
   private apiUrl = '/api/auth';
   private currentUserSubject: BehaviorSubject<User | null>;
 
@@ -79,5 +78,16 @@ export class AuthService {
 
   getToken(): string | null {
     return this.currentUserValue?.token || null;
+  }
+
+  validateToken(): Observable<boolean> {
+    const token = this.getToken();
+    if (!token) {
+      return of(false);
+    }
+    // Optional: Call backend to validate token
+    return this.http.get(`${this.apiUrl}/validate`).pipe(
+      map((response: any) => response?.valid === true)
+    );
   }
 }
